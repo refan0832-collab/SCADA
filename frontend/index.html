@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>PLTS Monitoring</title>
+
+  <link rel="stylesheet" href="style.css"/>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="logo">
+
+      <div class="logo-icon">
+        <i class="fa-solid fa-solar-panel"></i>
+      </div>
+
+      <span>PLTS Monitor</span>
+
+    </div>
+
+    <nav class="menu">
+
+      <a class="menu-item active">
+        <i class="fa-solid fa-table-cells-large"></i>
+        Dashboard
+      </a>
+
+      <a class="menu-item">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        History
+      </a>
+
+      <a class="menu-item">
+        <i class="fa-solid fa-gear"></i>
+        Settings
+      </a>
+
+    </nav>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <div>
+        <h1>PLTS MONITORING SYSTEM</h1>
+        <p>Realtime Solar Monitoring Dashboard</p>
+      </div>
+
+      <div class="header-right">
+
+        <div class="esp-status">
+
+          <div class="esp-dot waiting" id="espDot"></div>
+
+          <span id="espLabel">
+            Menunggu ESP32...
+          </span>
+
+        </div>
+
+        <span id="datetime"></span>
+
+        <div class="profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- CARDS -->
+    <section class="cards">
+
+      <!-- SOLAR -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Solar Voltage</h3>
+          <i class="fa-solid fa-sun"></i>
+        </div>
+
+        <div class="circle blue">
+
+          <div class="circle-inner">
+            <span id="solarCircle">0</span>
+          </div>
+
+        </div>
+
+        <h2 id="solar">0 V</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Normal</span>
+        </div>
+
+      </div>
+
+      <!-- BATTERY -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Battery Voltage</h3>
+          <i class="fa-solid fa-car-battery"></i>
+        </div>
+
+        <div class="circle green">
+
+          <div class="circle-inner">
+            <span id="batteryCircle">0</span>
+          </div>
+
+        </div>
+
+        <h2 id="battery">0 V</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Normal</span>
+        </div>
+
+      </div>
+
+      <!-- CURRENT -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Load Current</h3>
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+
+        <div class="circle orange">
+
+          <div class="circle-inner">
+            <span id="currentCircle">0</span>
+          </div>
+
+        </div>
+
+        <h2 id="current">0 A</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Active</span>
+        </div>
+
+      </div>
+
+      <!-- POWER -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Power</h3>
+          <i class="fa-solid fa-plug-circle-bolt"></i>
+        </div>
+
+        <div class="circle purple">
+
+          <div class="circle-inner">
+            <span id="powerCircle">0</span>
+          </div>
+
+        </div>
+
+        <h2 id="power">0 W</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Realtime</span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- CHART -->
+    <section class="chart-card">
+
+      <div class="chart-header">
+
+        <h3>Realtime Trends</h3>
+
+        <div class="legend">
+
+          <div>
+            <span class="blue-dot"></span>
+            Solar
+          </div>
+
+          <div>
+            <span class="green-dot"></span>
+            Battery
+          </div>
+
+        </div>
+
+      </div>
+
+      <canvas id="trendChart"></canvas>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
