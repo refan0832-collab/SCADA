@@ -10,6 +10,7 @@ import paho.mqtt.client as mqtt
 MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT = 1883
 MQTT_TOPIC = "monitoring/listrik/data"
+MQTT_CONTROL_TOPIC = "monitoring/listrik/control"
 
 # =========================================
 # GLOBAL
@@ -112,3 +113,29 @@ def start():
     thread.start()
 
     client.loop_start()
+    
+
+# =========================================
+# PUBLISH RELAY CONTROL
+# =========================================
+def publish_control(relay, state):
+
+    try:
+
+        client = mqtt.Client()
+
+        client.connect(MQTT_BROKER, MQTT_PORT, 60)
+
+        payload = json.dumps({
+            "relay": relay,
+            "state": state
+        })
+
+        client.publish(MQTT_CONTROL_TOPIC, payload)
+
+        client.disconnect()
+
+        print("[CONTROL]", payload)
+
+    except Exception as e:
+        print("[CONTROL ERROR]", e)

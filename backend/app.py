@@ -2,6 +2,8 @@ from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 import os
 import mqtt_client
+from flask import request
+
 
 # =========================================
 # PATH
@@ -38,6 +40,22 @@ def index():
 @app.route('/<path:path>')
 def static_file(path):
     return send_from_directory(FRONTEND_DIR, path)
+
+# =========================================
+# RELAY CONTROL API
+# =========================================
+@app.route('/control', methods=['POST'])
+def control():
+
+    data = request.json
+
+    relay = data.get("relay")
+    state = data.get("state")
+
+    mqtt_client.publish_control(relay, state)
+
+    return {"success": True}
+
 
 # =========================================
 # SOCKET

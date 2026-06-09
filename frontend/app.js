@@ -154,3 +154,65 @@ socket.on('sensorData',(data)=>{
 
   trendChart.update();
 });
+
+// ======================================
+// RELAY CONTROL
+// ======================================
+
+const relay1 = document.getElementById("relay1");
+const relay2 = document.getElementById("relay2");
+
+// RELAY 1
+if(relay1){
+
+  relay1.addEventListener("change", ()=>{
+
+    fetch("/control",{
+
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
+
+        relay:"relay1",
+
+        state: relay1.checked ? "ON" : "OFF"
+
+      })
+
+    });
+
+  });
+
+}
+
+// RELAY 2
+if(relay2){
+
+  relay2.addEventListener("change", ()=>{
+
+    fetch("/control",{
+
+      method:"POST",
+
+      headers:{
+        "Content-Type":"application/json"
+      },
+
+      body:JSON.stringify({
+
+        relay:"relay2",
+
+        state: relay2.checked ? "ON" : "OFF"
+
+      })
+
+    });
+
+  });
+
+}
+
