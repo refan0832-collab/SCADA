@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>PLTS Controller</title>
+
+  <link rel="stylesheet" href="style.css"/>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="logo">
+
+      <div class="logo-icon">
+        <i class="fa-solid fa-solar-panel"></i>
+      </div>
+
+      <span>PLTS Monitor</span>
+
+    </div>
+
+    <nav class="menu">
+
+      <a class="menu-item" href="index.html">
+        <i class="fa-solid fa-table-cells-large"></i>
+        Dashboard
+      </a>
+
+      <a class="menu-item">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        History
+      </a>
+
+      <a class="menu-item active" href="controller.html">
+        <i class="fa-solid fa-toggle-on"></i>
+        Controller
+      </a>
+
+    </nav>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HEADER -->
+    <header class="header">
+
+      <div>
+        <h1>PLTS CONTROLLER SYSTEM</h1>
+        <p>Realtime Relay Control Dashboard</p>
+      </div>
+
+      <div class="header-right">
+
+        <div class="esp-status">
+
+          <div class="esp-dot waiting" id="espDot"></div>
+
+          <span id="espLabel">
+            Menunggu ESP32...
+          </span>
+
+        </div>
+
+        <span id="datetime"></span>
+
+        <div class="profile">
+          <i class="fa-solid fa-user"></i>
+        </div>
+
+      </div>
+
+    </header>
+
+    <!-- CONTROLLER -->
+    <section class="cards">
+
+      <!-- RELAY 1 -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Relay 1</h3>
+          <i class="fa-solid fa-lightbulb"></i>
+        </div>
+
+        <div class="switch-wrapper">
+
+          <label class="switch">
+
+            <input type="checkbox" id="relay1">
+
+            <span class="slider"></span>
+
+          </label>
+
+        </div>
+
+        <h2>Lamp Control</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Manual Control</span>
+        </div>
+
+      </div>
+
+      <!-- RELAY 2 -->
+      <div class="card">
+
+        <div class="card-top">
+          <h3>Relay 2</h3>
+          <i class="fa-solid fa-fan"></i>
+        </div>
+
+        <div class="switch-wrapper">
+
+          <label class="switch">
+
+            <input type="checkbox" id="relay2">
+
+            <span class="slider"></span>
+
+          </label>
+
+        </div>
+
+        <h2>Fan Control</h2>
+
+        <div class="status">
+          <div class="dot"></div>
+          <span>Manual Control</span>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
+
