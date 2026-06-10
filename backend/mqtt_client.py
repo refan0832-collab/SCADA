@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 # =========================================
 MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT = 1883
+
 MQTT_TOPIC = "monitoring/listrik/data"
 MQTT_CONTROL_TOPIC = "monitoring/listrik/control"
 
@@ -16,12 +17,15 @@ MQTT_CONTROL_TOPIC = "monitoring/listrik/control"
 # GLOBAL
 # =========================================
 socketio = None
+client = None
 
 sensor_data = {
+
     "solar": 0,
     "battery": 0,
     "current": 0,
     "power": 0,
+
     "status": "offline",
     "time": "--:--:--"
 }
@@ -32,7 +36,9 @@ last_message_time = time.time()
 # INIT SOCKETIO
 # =========================================
 def init_socketio(sio):
+
     global socketio
+
     socketio = sio
 
 # =========================================
@@ -40,10 +46,18 @@ def init_socketio(sio):
 # =========================================
 def on_connect(client, userdata, flags, rc):
 
+    print("[MQTT RC]", rc)
+
     if rc == 0:
+
         print("[MQTT] Connected")
+
         client.subscribe(MQTT_TOPIC)
+
+        print("[MQTT] Subscribe:", MQTT_TOPIC)
+
     else:
+
         print("[MQTT] Failed:", rc)
 
 # =========================================
@@ -56,26 +70,50 @@ def on_message(client, userdata, msg):
     try:
 
         payload = msg.payload.decode()
+
+        print("[MQTT DATA]", payload)
+
         data = json.loads(payload)
 
-        sensor_data["solar"] = round(data.get("solar", 0), 2)
-        sensor_data["battery"] = round(data.get("battery", 0), 2)
-        sensor_data["current"] = round(data.get("current", 0), 2)
-        sensor_data["power"] = round(data.get("power", 0), 2)
+        sensor_data["solar"] = round(
+            data.get("solar", 0), 2
+        )
+
+        sensor_data["battery"] = round(
+            data.get("battery", 0), 2
+        )
+
+        sensor_data["current"] = round(
+            data.get("current", 0), 2
+        )
+
+        sensor_data["power"] = round(
+            data.get("power", 0), 2
+        )
 
         sensor_data["status"] = "online"
 
-        sensor_data["time"] = datetime.now().strftime("%H:%M:%S")
+        sensor_data["time"] = datetime.now().strftime(
+            "%H:%M:%S"
+        )
 
         last_message_time = time.time()
 
+        # =====================================
+        # SEND TO FRONTEND
+        # =====================================
         if socketio:
-            socketio.emit('sensorData', sensor_data)
+
+            socketio.emit(
+                "sensorData",
+                sensor_data
+            )
 
         print(sensor_data)
 
     except Exception as e:
-        print("[ERROR]", e)
+
+        print("[ERROR RECEIVE]", e)
 
 # =========================================
 # OFFLINE MONITOR
@@ -89,10 +127,15 @@ def monitor_esp_status():
         elapsed = time.time() - last_message_time
 
         if elapsed > 10:
+
             sensor_data["status"] = "offline"
 
             if socketio:
-                socketio.emit('sensorData', sensor_data)
+
+                socketio.emit(
+                    "sensorData",
+                    sensor_data
+                )
 
         time.sleep(2)
 
@@ -101,41 +144,92 @@ def monitor_esp_status():
 # =========================================
 def start():
 
-    client = mqtt.Client()
+    global client
 
-    client.on_connect = on_connect
-    client.on_message = on_message
+    try:
 
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        print("[MQTT] Connecting...")
 
-    thread = threading.Thread(target=monitor_esp_status)
-    thread.daemon = True
-    thread.start()
+        client = mqtt.Client(
+            mqtt.CallbackAPIVersion.VERSION1
+        )
 
-    client.loop_start()
-    
+        client.on_connect = on_connect
+        client.on_message = on_message
+
+        result = client.connect(
+            MQTT_BROKER,
+            MQTT_PORT,
+            60
+        )
+
+        print(
+            "[MQTT CONNECT RESULT]",
+            result
+        )
+
+        # =====================================
+        # START OFFLINE MONITOR
+        # =====================================
+        thread = threading.Thread(
+            target=monitor_esp_status
+        )
+
+        thread.daemon = True
+        thread.start()
+
+        # =====================================
+        # START MQTT LOOP
+        # =====================================
+        client.loop_start()
+
+        print("[MQTT] Loop Started")
+
+    except Exception as e:
+
+        print("[MQTT ERROR]", e)
 
 # =========================================
 # PUBLISH RELAY CONTROL
 # =========================================
 def publish_control(relay, state):
 
+    global client
+
     try:
 
-        client = mqtt.Client()
+        command = ""
 
-        client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        # =====================================
+        # RELAY 1
+        # =====================================
+        if relay == "relay1":
 
-        payload = json.dumps({
-            "relay": relay,
-            "state": state
-        })
+            if state == "ON":
+                command = "R1ON"
+            else:
+                command = "R1OFF"
 
-        client.publish(MQTT_CONTROL_TOPIC, payload)
+        # =====================================
+        # RELAY 2
+        # =====================================
+        elif relay == "relay2":
 
-        client.disconnect()
+            if state == "ON":
+                command = "R2ON"
+            else:
+                command = "R2OFF"
 
-        print("[CONTROL]", payload)
+        # =====================================
+        # MQTT PUBLISH
+        # =====================================
+        client.publish(
+            MQTT_CONTROL_TOPIC,
+            command
+        )
+
+        print("[CONTROL]", command)
 
     except Exception as e:
+
         print("[CONTROL ERROR]", e)
