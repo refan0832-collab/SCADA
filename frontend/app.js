@@ -1,218 +1,218 @@
+// ======================================
+// SOCKET IO
+// ======================================
 const socket = io();
 
-// DATE TIME
-function updateDateTime(){
+// ======================================
+// ELEMENT SENSOR
+// ======================================
+const solarEl =
+document.getElementById("solar");
 
-  const now = new Date();
+const batteryEl =
+document.getElementById("battery");
 
-  document.getElementById('datetime').innerHTML =
-    now.toLocaleDateString() + ' • ' +
-    now.toLocaleTimeString();
-}
+const currentEl =
+document.getElementById("current");
 
-setInterval(updateDateTime,1000);
+const powerEl =
+document.getElementById("power");
 
-updateDateTime();
+const statusEl =
+document.getElementById("status");
+
+const timeEl =
+document.getElementById("time");
 
 // ======================================
-// CHART
+// RELAY ELEMENT
 // ======================================
-const ctx = document.getElementById('trendChart');
+const relay1 =
+document.getElementById("relay1");
 
-const labels = [];
-const solarData = [];
-const batteryData = [];
+const relay2 =
+document.getElementById("relay2");
 
-const trendChart = new Chart(ctx, {
+// ======================================
+// RECEIVE SENSOR DATA
+// ======================================
+socket.on("sensorData", (data) => {
 
-  type:'line',
+  console.log(data);
 
-  data:{
-    labels,
+  // ====================================
+  // SENSOR VALUE
+  // ====================================
+  if (solarEl) {
 
-    datasets:[
+    solarEl.innerHTML =
+      data.solar + " V";
+  }
 
-      {
-        label:'Solar',
-        data:solarData,
-        borderColor:'#2563eb',
-        backgroundColor:'rgba(37,99,235,0.15)',
-        fill:true,
-        tension:0.4
-      },
+  if (batteryEl) {
 
-      {
-        label:'Battery',
-        data:batteryData,
-        borderColor:'#22c55e',
-        backgroundColor:'rgba(34,197,94,0.15)',
-        fill:true,
-        tension:0.4
-      }
+    batteryEl.innerHTML =
+      data.battery + " V";
+  }
 
-    ]
-  },
+  if (currentEl) {
 
-  options:{
+    currentEl.innerHTML =
+      data.current + " A";
+  }
 
-    responsive:true,
+  if (powerEl) {
 
-    plugins:{
-      legend:{
-        display:false
-      }
-    },
+    powerEl.innerHTML =
+      data.power + " W";
+  }
 
-    scales:{
+  // ====================================
+  // STATUS
+  // ====================================
+  if (statusEl) {
 
-      x:{
-        ticks:{
-          color:'#94a3b8'
-        },
+    statusEl.innerHTML =
+      data.status;
 
-        grid:{
-          color:'rgba(255,255,255,0.05)'
-        }
-      },
+    if (data.status === "online") {
 
-      y:{
-        ticks:{
-          color:'#94a3b8'
-        },
+      statusEl.style.color =
+        "#00ff88";
 
-        grid:{
-          color:'rgba(255,255,255,0.05)'
-        }
-      }
+    } else {
+
+      statusEl.style.color =
+        "red";
     }
   }
+
+  // ====================================
+  // TIME
+  // ====================================
+  if (timeEl) {
+
+    timeEl.innerHTML =
+      data.time;
+  }
 });
 
 // ======================================
-// STATUS
+// RELAY 1 CONTROL
 // ======================================
-function setEspStatus(status){
+if (relay1) {
 
-  const dot = document.getElementById('espDot');
-  const label = document.getElementById('espLabel');
+  relay1.addEventListener(
+    "change",
+    () => {
 
-  dot.className = `esp-dot ${status}`;
+      const state =
+        relay1.checked
+        ? "ON"
+        : "OFF";
 
-  if(status === 'online'){
-    label.textContent = 'ESP32 Online';
-  }
-  else if(status === 'offline'){
-    label.textContent = 'ESP32 Offline';
-  }
-  else{
-    label.textContent = 'Waiting ESP32';
-  }
-}
+      console.log(
+        "Relay 1:",
+        state
+      );
 
-// ======================================
-// REALTIME DATA
-// ======================================
-socket.on('sensorData',(data)=>{
+      fetch("/control", {
 
-  setEspStatus(data.status);
+        method: "POST",
 
-  document.getElementById('solar').innerHTML =
-    `${data.solar} V`;
+        headers: {
+          "Content-Type":
+          "application/json"
+        },
 
-  document.getElementById('battery').innerHTML =
-    `${data.battery} V`;
+        body: JSON.stringify({
 
-  document.getElementById('current').innerHTML =
-    `${data.current} A`;
+          relay: "relay1",
+          state: state
 
-  document.getElementById('power').innerHTML =
-    `${data.power} W`;
-
-  document.getElementById('solarCircle').textContent =
-    data.solar;
-
-  document.getElementById('batteryCircle').textContent =
-    data.battery;
-
-  document.getElementById('currentCircle').textContent =
-    data.current;
-
-  document.getElementById('powerCircle').textContent =
-    data.power;
-
-  labels.push(data.time);
-
-  solarData.push(data.solar);
-  batteryData.push(data.battery);
-
-  if(labels.length > 15){
-
-    labels.shift();
-    solarData.shift();
-    batteryData.shift();
-  }
-
-  trendChart.update();
-});
-
-// ======================================
-// RELAY CONTROL
-// ======================================
-
-const relay1 = document.getElementById("relay1");
-const relay2 = document.getElementById("relay2");
-
-// RELAY 1
-if(relay1){
-
-  relay1.addEventListener("change", ()=>{
-
-    fetch("/control",{
-
-      method:"POST",
-
-      headers:{
-        "Content-Type":"application/json"
-      },
-
-      body:JSON.stringify({
-
-        relay:"relay1",
-
-        state: relay1.checked ? "ON" : "OFF"
+        })
 
       })
 
-    });
+      .then(res => res.json())
 
-  });
+      .then(data => {
 
-}
-
-// RELAY 2
-if(relay2){
-
-  relay2.addEventListener("change", ()=>{
-
-    fetch("/control",{
-
-      method:"POST",
-
-      headers:{
-        "Content-Type":"application/json"
-      },
-
-      body:JSON.stringify({
-
-        relay:"relay2",
-
-        state: relay2.checked ? "ON" : "OFF"
+        console.log(
+          "Relay1 Response:",
+          data
+        );
 
       })
 
-    });
+      .catch(err => {
 
-  });
+        console.log(
+          "Relay1 Error:",
+          err
+        );
 
+      });
+    }
+  );
 }
 
+// ======================================
+// RELAY 2 CONTROL
+// ======================================
+if (relay2) {
+
+  relay2.addEventListener(
+    "change",
+    () => {
+
+      const state =
+        relay2.checked
+        ? "ON"
+        : "OFF";
+
+      console.log(
+        "Relay 2:",
+        state
+      );
+
+      fetch("/control", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+          "application/json"
+        },
+
+        body: JSON.stringify({
+
+          relay: "relay2",
+          state: state
+
+        })
+
+      })
+
+      .then(res => res.json())
+
+      .then(data => {
+
+        console.log(
+          "Relay2 Response:",
+          data
+        );
+
+      })
+
+      .catch(err => {
+
+        console.log(
+          "Relay2 Error:",
+          err
+        );
+
+      });
+    }
+  );
+}

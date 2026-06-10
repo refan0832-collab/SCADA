@@ -7,7 +7,7 @@ import paho.mqtt.client as mqtt
 # =========================================
 # MQTT
 # =========================================
-MQTT_BROKER = "broker.hivemq.com"
+MQTT_BROKER = "test.mosquitto.org"
 MQTT_PORT = 1883
 
 MQTT_TOPIC = "monitoring/listrik/data"
@@ -99,17 +99,12 @@ def on_message(client, userdata, msg):
 
         last_message_time = time.time()
 
-        # =====================================
-        # SEND TO FRONTEND
-        # =====================================
         if socketio:
 
             socketio.emit(
                 "sensorData",
                 sensor_data
             )
-
-        print(sensor_data)
 
     except Exception as e:
 
@@ -168,9 +163,6 @@ def start():
             result
         )
 
-        # =====================================
-        # START OFFLINE MONITOR
-        # =====================================
         thread = threading.Thread(
             target=monitor_esp_status
         )
@@ -178,9 +170,6 @@ def start():
         thread.daemon = True
         thread.start()
 
-        # =====================================
-        # START MQTT LOOP
-        # =====================================
         client.loop_start()
 
         print("[MQTT] Loop Started")
@@ -220,9 +209,6 @@ def publish_control(relay, state):
             else:
                 command = "R2OFF"
 
-        # =====================================
-        # MQTT PUBLISH
-        # =====================================
         client.publish(
             MQTT_CONTROL_TOPIC,
             command

@@ -1,86 +1,150 @@
-from flask import Flask, send_from_directory
-from flask_socketio import SocketIO
-import os
-import mqtt_client
+from flask import Flask
+from flask import send_from_directory
 from flask import request
 
+from flask_socketio import SocketIO
+
+import os
+import mqtt_client
 
 # =========================================
 # PATH
 # =========================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend')
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+FRONTEND_DIR = os.path.join(
+    BASE_DIR,
+    "..",
+    "frontend"
+)
 
 # =========================================
 # FLASK
 # =========================================
-app = Flask(
-    __name__,
-    static_folder=FRONTEND_DIR,
-    static_url_path=''
-)
+app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'secret'
-
+# =========================================
+# SOCKET IO
+# =========================================
 socketio = SocketIO(
+
     app,
-    cors_allowed_origins='*',
-    async_mode='threading'
+
+    cors_allowed_origins="*",
+
+    async_mode="threading"
 )
 
+# =========================================
+# INIT SOCKETIO MQTT
+# =========================================
 mqtt_client.init_socketio(socketio)
 
 # =========================================
-# ROUTES
+# ROUTE INDEX
 # =========================================
-@app.route('/')
+@app.route("/")
 def index():
-    return send_from_directory(FRONTEND_DIR, 'index.html')
 
-@app.route('/<path:path>')
-def static_file(path):
-    return send_from_directory(FRONTEND_DIR, path)
+    return send_from_directory(
+
+        FRONTEND_DIR,
+
+        "index.html"
+    )
 
 # =========================================
-# RELAY CONTROL API
+# ROUTE CONTROLLER
 # =========================================
-@app.route('/control', methods=['POST'])
+@app.route("/controller.html")
+def controller():
+
+    return send_from_directory(
+
+        FRONTEND_DIR,
+
+        "controller.html"
+    )
+
+# =========================================
+# STATIC FILES
+# =========================================
+@app.route("/<path:path>")
+def static_files(path):
+
+    return send_from_directory(
+
+        FRONTEND_DIR,
+
+        path
+    )
+
+# =========================================
+# RELAY CONTROL
+# =========================================
+@app.route("/control", methods=["POST"])
 def control():
 
-    data = request.json
+    try:
 
-    relay = data.get("relay")
-    state = data.get("state")
+        data = request.json
 
-    mqtt_client.publish_control(relay, state)
+        relay = data.get("relay")
+        state = data.get("state")
 
-    return {"success": True}
+        print()
+        print("========== CONTROL ==========")
+        print("Relay :", relay)
+        print("State :", state)
 
+        mqtt_client.publish_control(
 
-# =========================================
-# SOCKET
-# =========================================
-@socketio.on('connect')
-def connect():
-    print('[SOCKET] Browser Connected')
-    socketio.emit('sensorData', mqtt_client.sensor_data)
+            relay,
+            state
+        )
+
+        return {
+
+            "success": True
+        }
+
+    except Exception as e:
+
+        print("[CONTROL ERROR]", e)
+
+        return {
+
+            "success": False,
+            "error": str(e)
+        }
 
 # =========================================
 # MAIN
 # =========================================
-if __name__ == '__main__':
+if __name__ == "__main__":
 
+    print("========================================")
+    print("SERVER RUNNING")
+    print("http://localhost:5500")
+    print("========================================")
+
+    # =====================================
+    # START MQTT
+    # =====================================
     mqtt_client.start()
 
-    print('=' * 40)
-    print('SERVER RUNNING')
-    print('http://localhost:5500')
-    print('=' * 40)
-
+    # =====================================
+    # RUN SERVER
+    # =====================================
     socketio.run(
+
         app,
-        host='0.0.0.0',
+
+        host="0.0.0.0",
+
         port=5500,
-        debug=False,
-        allow_unsafe_werkzeug=True
+
+        debug=False
     )
