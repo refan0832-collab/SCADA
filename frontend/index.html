@@ -25,13 +25,10 @@
   <aside class="sidebar">
 
     <div class="logo">
-
       <div class="logo-icon">
         <i class="fa-solid fa-solar-panel"></i>
       </div>
-
       <span>PLTS Monitor</span>
-
     </div>
 
     <nav class="menu">
@@ -46,9 +43,9 @@
         History
       </a>
 
-      <a class="menu-item" href="controller.html"> 
+      <a class="menu-item" href="controller.html">
         <i class="fa-solid fa-toggle-on"></i>
-         Controller 
+        Controller
       </a>
 
     </nav>
@@ -69,16 +66,11 @@
       <div class="header-right">
 
         <div class="esp-status">
-
           <div class="esp-dot waiting" id="espDot"></div>
-
-          <span id="espLabel">
-            Menunggu ESP32...
-          </span>
-
+          <span id="espLabel">Menunggu ESP32...</span>
         </div>
 
-        <span id="datetime"></span>
+        <div id="datetime" class="datetime-box"></div>
 
         <div class="profile">
           <i class="fa-solid fa-user"></i>
@@ -93,102 +85,74 @@
 
       <!-- SOLAR -->
       <div class="card">
-
         <div class="card-top">
           <h3>Solar Voltage</h3>
           <i class="fa-solid fa-sun"></i>
         </div>
-
         <div class="circle blue">
-
           <div class="circle-inner">
             <span id="solarCircle">0</span>
           </div>
-
         </div>
-
         <h2 id="solar">0 V</h2>
-
         <div class="status">
           <div class="dot"></div>
           <span>Normal</span>
         </div>
-
       </div>
 
       <!-- BATTERY -->
       <div class="card">
-
         <div class="card-top">
           <h3>Battery Voltage</h3>
           <i class="fa-solid fa-car-battery"></i>
         </div>
-
         <div class="circle green">
-
           <div class="circle-inner">
             <span id="batteryCircle">0</span>
           </div>
-
         </div>
-
         <h2 id="battery">0 V</h2>
-
         <div class="status">
           <div class="dot"></div>
           <span>Normal</span>
         </div>
-
       </div>
 
       <!-- CURRENT -->
       <div class="card">
-
         <div class="card-top">
           <h3>Load Current</h3>
           <i class="fa-solid fa-bolt"></i>
         </div>
-
         <div class="circle orange">
-
           <div class="circle-inner">
             <span id="currentCircle">0</span>
           </div>
-
         </div>
-
         <h2 id="current">0 A</h2>
-
         <div class="status">
           <div class="dot"></div>
           <span>Active</span>
         </div>
-
       </div>
 
       <!-- POWER -->
       <div class="card">
-
         <div class="card-top">
           <h3>Power</h3>
           <i class="fa-solid fa-plug-circle-bolt"></i>
         </div>
-
         <div class="circle purple">
-
           <div class="circle-inner">
             <span id="powerCircle">0</span>
           </div>
-
         </div>
-
         <h2 id="power">0 W</h2>
-
         <div class="status">
           <div class="dot"></div>
           <span>Realtime</span>
         </div>
-
       </div>
 
     </section>
@@ -197,23 +161,17 @@
     <section class="chart-card">
 
       <div class="chart-header">
-
         <h3>Realtime Trends</h3>
-
         <div class="legend">
-
           <div>
             <span class="blue-dot"></span>
-            Solar
+            Solar (V)
           </div>
-
           <div>
             <span class="green-dot"></span>
-            Battery
+            Battery (V)
           </div>
-
         </div>
-
       </div>
 
       <canvas id="trendChart"></canvas>
@@ -225,8 +183,76 @@
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
 <script src="app.js"></script>
+
+<!-- CHART INIT -->
+<script>
+  const MAX_POINTS = 20;
+
+  const ctx = document.getElementById("trendChart").getContext("2d");
+
+  const trendChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label      : "Solar (V)",
+          data       : [],
+          borderColor: "#2563eb",
+          backgroundColor: "rgba(37,99,235,0.1)",
+          borderWidth: 2,
+          tension    : 0.4,
+          fill       : true,
+          pointRadius: 3
+        },
+        {
+          label      : "Battery (V)",
+          data       : [],
+          borderColor: "#22c55e",
+          backgroundColor: "rgba(34,197,94,0.1)",
+          borderWidth: 2,
+          tension    : 0.4,
+          fill       : true,
+          pointRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation : { duration: 300 },
+      scales    : {
+        x: {
+          ticks: { color: "#94a3b8", maxTicksLimit: 8 },
+          grid : { color: "#1e293b" }
+        },
+        y: {
+          ticks: { color: "#94a3b8" },
+          grid : { color: "#1e293b" }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#cbd5e1" }
+        }
+      }
+    }
+  });
+
+  function addChartData(label, solar, battery) {
+    trendChart.data.labels.push(label);
+    trendChart.data.datasets[0].data.push(solar);
+    trendChart.data.datasets[1].data.push(battery);
+
+    if (trendChart.data.labels.length > MAX_POINTS) {
+      trendChart.data.labels.shift();
+      trendChart.data.datasets[0].data.shift();
+      trendChart.data.datasets[1].data.shift();
+    }
+
+    trendChart.update();
+  }
+</script>
 
 </body>
 </html>
